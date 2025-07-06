@@ -154,11 +154,20 @@ def replace_code_by_line(
             result_info.append(f"扩展后行数: {total_lines + lines_to_add}")
         result_info.append(f"成功替换行数: {len(validated_replacements)}")
         
-        # 检查是否为 Lua 文件
+        # 检查是否需要进行语法检查
         file_extension = os.path.splitext(file_path)[1].lower()
-        if file_extension == '.lua':
+        
+        # 定义文件扩展名到语法检查器的映射
+        syntax_map = {
+            '.lua': 'lua',
+            '.xml': 'xml',
+            '.txt': 'xml'  # .txt 文件使用 XML 语法检查器
+        }
+        
+        if file_extension in syntax_map:
+            language = syntax_map[file_extension]
             result_info.append("")
-            result_info.append("🔍 Lua 语法检查结果:")
+            result_info.append(f"🔍 {language.upper()} 语法检查结果:")
             
             try:
                 # 读取替换后的文件内容进行语法检查
@@ -166,7 +175,7 @@ def replace_code_by_line(
                     updated_content = file.read()
                 
                 # 调用语法检查器
-                syntax_result = SyntaxChecker.check_syntax(updated_content, "lua")
+                syntax_result = SyntaxChecker.check_syntax(updated_content, language)
                 
                 if syntax_result["is_valid"]:
                     result_info.append("✅ 语法检查通过，代码有效")

@@ -5,6 +5,6 @@ fastmcp
 # Tree-sitter 语法解析依赖
 tree-sitter>=0.20.0
 tree-sitter-lua>=0.0.14
-
+tree_sitter_xml
 # 类型注解支持
 typing-extensions>=4.0.0

@@ -1,6 +1,6 @@
 """
 创建文件工具
-用于创建指定路径的文件，自动创建不存在的目录路径，支持 Lua 文件语法检查
+用于创建指定路径的文件，自动创建不存在的目录路径，支持多种文件类型的语法检查
 """
 
 import os
@@ -16,7 +16,7 @@ def create_file(
     创建指定路径的文件并写入内容
     
     此工具会自动创建文件路径中不存在的目录，然后创建文件并写入指定内容。
-    如果是 .lua 文件且内容不为空，会自动进行语法检查。
+    如果是支持的文件类型（.lua、.xml、.txt）且内容不为空，会自动进行语法检查。
     
     Args:
         file_path: 要创建的文件的完整路径
@@ -101,14 +101,23 @@ def create_file(
         if directories_created:
             result_info.append(f"📁 创建目录: {', '.join(directories_created)}")
         
-        # 检查是否为 Lua 文件并进行语法检查
+        # 检查是否需要进行语法检查
         file_extension = os.path.splitext(file_path)[1].lower()
-        if file_extension == '.lua' and content.strip():
+        
+        # 定义文件扩展名到语法检查器的映射
+        syntax_map = {
+            '.lua': 'lua',
+            '.xml': 'xml',
+            '.txt': 'xml'  # .txt 文件使用 XML 语法检查器
+        }
+        
+        if file_extension in syntax_map and content.strip():
+            language = syntax_map[file_extension]
             result_info.append("")
-            result_info.append("🔍 Lua 语法检查结果:")
+            result_info.append(f"🔍 {language.upper()} 语法检查结果:")
             
             try:
-                syntax_result = SyntaxChecker.check_syntax(content, "lua")
+                syntax_result = SyntaxChecker.check_syntax(content, language)
                 
                 if syntax_result["is_valid"]:
                     result_info.append("✅ 语法检查通过，代码有效")
@@ -122,9 +131,10 @@ def create_file(
                             
             except Exception as e:
                 result_info.append(f"⚠️ 语法检查失败: {str(e)}")
-        elif file_extension == '.lua' and not content.strip():
+        elif file_extension in syntax_map and not content.strip():
+            language = syntax_map[file_extension]
             result_info.append("")
-            result_info.append("ℹ️ 空的 Lua 文件，跳过语法检查")
+            result_info.append(f"ℹ️ 空的 {language.upper()} 文件，跳过语法检查")
         
         return "\n".join(result_info)
         
