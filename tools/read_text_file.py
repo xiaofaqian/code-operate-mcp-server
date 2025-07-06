@@ -4,15 +4,14 @@
 """
 
 import os
-from typing import Optional, Annotated
+from typing import Annotated
 from mcp.server.fastmcp import FastMCP
 
 
 def read_text_file(
     file_path: Annotated[str, "文件的完整路径"],
     start_line: Annotated[int, "开始读取的行号（从1开始），默认为1"] = 1,
-    end_line: Annotated[Optional[int], "结束读取的行号，None表示读取到文件末尾"] = None,
-    max_lines: Annotated[int, "最大读取行数限制，防止文件过大"] = 1000
+    count: Annotated[int, "要读取的行数，最大不超过100"] = 100
 ) -> str:
     """
     读取指定路径的文本文件，返回带行号的内容
@@ -20,8 +19,7 @@ def read_text_file(
     Args:
         file_path: 文件的完整路径
         start_line: 开始读取的行号（从1开始）
-        end_line: 结束读取的行号，None表示读取到文件末尾
-        max_lines: 最大读取行数限制
+        count: 要读取的行数，最大不超过100
     
     Returns:
         带行号的文件内容字符串
@@ -46,11 +44,11 @@ def read_text_file(
         if start_line < 1:
             return "错误：开始行号必须大于等于1"
         
-        if end_line is not None and end_line < start_line:
-            return "错误：结束行号不能小于开始行号"
+        if count < 1:
+            return "错误：读取行数必须大于0"
         
-        if max_lines < 1:
-            return "错误：最大行数限制必须大于0"
+        if count > 100:
+            return "错误：读取行数不能超过100"
         
         # 读取文件
         try:
@@ -63,7 +61,7 @@ def read_text_file(
         
         # 计算实际的结束行号
         total_lines = len(lines)
-        actual_end_line = min(end_line or total_lines, start_line + max_lines - 1, total_lines)
+        actual_end_line = min(start_line + count - 1, total_lines)
         
         # 检查开始行号是否超出文件范围
         if start_line > total_lines:
@@ -86,8 +84,8 @@ def read_text_file(
         info_header += "-" * 50 + "\n"
         
         # 如果读取的行数达到了限制，添加提示
-        if actual_end_line - start_line + 1 >= max_lines:
-            result_lines.append(f"\n注意：已达到最大行数限制 ({max_lines} 行)")
+        if actual_end_line < start_line + count - 1:
+            result_lines.append(f"\n注意：文件行数不足，实际读取了 {actual_end_line - start_line + 1} 行")
         
         return info_header + "\n".join(result_lines)
         
